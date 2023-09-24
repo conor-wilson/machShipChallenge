@@ -11,21 +11,43 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type User struct {
-	Name             string  `json:"name"`
-	Login            string  `json:"login"`
-	Company          string  `json:"company"`
-	NumFollowers     int     `json:"followers"`
-	NumRepos         int     `json:"public_repos"`
-	AvgRepoFollowers float32 `json:"avg_public_repo_followers"`
-}
-
-type Users []*User
-
+// main routes the functionality of the API and exposes it on port 8080. 
 func main() {
 	router := gin.Default()
 	router.GET("/retrieveUsers", retrieveUsers)
 	router.Run("localhost:8080")
+}
+
+// User encapsulates the basic information of a GitHub user.
+type User struct {
+	Name         string `json:"name"`
+	Login        string `json:"login"`
+	Company      string `json:"company"`
+	NumFollowers int    `json:"followers"`
+	NumRepos     int    `json:"public_repos"`
+
+	// The average number of followers the user has per public repository.
+	AvgRepoFollowers float32 `json:"avg_public_repo_followers"`
+}
+
+// Users encapsulates a slice of Users.
+type Users []*User
+
+// computeAvgRepoFollowers calculates the average followers per public repo of the
+// provided User and update's the User's field accordingly.
+func (user *User) computeAvgRepoFollowers() {
+	if user.NumRepos == 0 {
+		user.AvgRepoFollowers = 0
+		return
+	}
+	user.AvgRepoFollowers = float32(user.NumFollowers) / float32(user.NumRepos)
+}
+
+// alphabetise sorts the provided slice of Users alphabetically by name.
+func (users Users) alphabetise() {
+	sort.Slice(users, func(i, j int) bool {
+		return users[i].Name[0] < users[j].Name[0]
+	})
 }
 
 // retrieveUsers retrieves the basic user information of the specified GitHub users. This
@@ -36,18 +58,17 @@ func retrieveUsers(c *gin.Context) {
 	usernames := c.QueryArray("users")
 	usernames = deduplicate(usernames)
 
-	// For each username...
 	users := Users{}
 	for _, username := range usernames {
 
-		// ...obtain the raw user data from GitHub's API...
+		// Obtain the raw user data from GitHub's API
 		resp, err := http.Get("https://api.github.com/users/" + username)
 		if err != nil {
 			log.Printf("error accesssing GitHub's API: %v\n", err)
 			return
 		}
 
-		// ...unmarshal the resulting response into a User struct...
+		// Unmarshal GitHub's response into a User struct
 		newUser, success, err := unmarshalUserFromGitHubResponse(resp)
 		if err != nil {
 			log.Printf("error unmarshalling User from GitHub response: %v\n", err)
@@ -56,9 +77,9 @@ func retrieveUsers(c *gin.Context) {
 			log.Printf("[WARNING] Request for user information with username '%v' was unsuccessful. Status:, %v\n", username, resp.Status)
 			continue
 		}
-		newUser.computeAvgRepoFollowers()
 
-		// ...and append the new User to the User slice.
+		// Tidy the fields and append the new User to the slice of Users.
+		newUser.computeAvgRepoFollowers()
 		users = append(users, newUser)
 	}
 
@@ -101,23 +122,6 @@ func deduplicate(usernames []string) []string {
 		}
 	}
 	return output
-}
-
-// computeAvgRepoFollowers calculates the average followers per public repo of the
-// provided User and update's the User's field accordingly.
-func (user *User) computeAvgRepoFollowers() {
-	if user.NumRepos == 0 {
-		user.AvgRepoFollowers = 0
-		return
-	}
-	user.AvgRepoFollowers = float32(user.NumFollowers) / float32(user.NumRepos)
-}
-
-// alphabetise sorts the provided slice of Users alphabetically by name.
-func (users Users) alphabetise() {
-	sort.Slice(users, func(i, j int) bool {
-		return users[i].Name[0] < users[j].Name[0]
-	})
 }
 
 // contains indicates whether or not the provided slice of string usernames contains the
