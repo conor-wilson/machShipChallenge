@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestDeduplicate(t *testing.T) {
@@ -66,12 +69,12 @@ func TestAlphabetiseUsers(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		users          []User
-		expectedOutput []User
+		users          []*User
+		expectedOutput []*User
 	}{
 		{
 			name: "happy-path",
-			users: []User{
+			users: []*User{
 				{
 					Name: "Conor Wilson",
 				},
@@ -82,7 +85,7 @@ func TestAlphabetiseUsers(t *testing.T) {
 					Name: "Buggs Bunny",
 				},
 			},
-			expectedOutput: []User{
+			expectedOutput: []*User{
 				{
 					Name: "Buggs Bunny",
 				},
@@ -107,9 +110,8 @@ func TestAlphabetiseUsers(t *testing.T) {
 				t.Errorf("alphabetiseUsers() returned a slice of unexpected length:\nWant: %v\nGot:  %v", tt.expectedOutput, tt.users)
 			}
 			for i := 0; i < len(tt.expectedOutput); i++ {
-				if tt.users[i] != tt.expectedOutput[i] {
-					t.Errorf("alphabetiseUsers() returned an unexpected output:\nWant: %v\nGot:  %v", tt.expectedOutput, tt.users)
-				}
+				errMsg := fmt.Sprintf("alphabetiseUsers() returned an unexpected output:\nWant: %v\nGot:  %v", tt.expectedOutput, tt.users)
+				require.Equal(t, tt.users[i], tt.expectedOutput[i], errMsg)
 			}
 		})
 	}
