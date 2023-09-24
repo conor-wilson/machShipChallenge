@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"sort"
 
@@ -38,10 +39,12 @@ func retrieveUsers(c *gin.Context) {
 	for _, username := range usernames {
 
 		// ...obtain the raw user data from GitHub...
-		userData, err := getUserDataFromGitHub(username)
+		userData, success, err := getUserDataFromGitHub(username)
 		if err != nil {
 			fmt.Println(err)
 			return
+		} else if !success {
+			continue
 		}
 
 		// ...and marshal the data into our User struct type.
@@ -60,20 +63,28 @@ func retrieveUsers(c *gin.Context) {
 
 // getUserDataFromGitHub obtains the raw user data of the provided user from GitHub and
 // outputs it as a slice of JSON bytes.
-func getUserDataFromGitHub(username string) ([]byte, error) {
+func getUserDataFromGitHub(username string) ([]byte, bool, error) {
 
 	// Get the data response from GitHub's API
 	resp, err := http.Get("https://api.github.com/users/" + username)
 	if err != nil {
-		return nil, fmt.Errorf("error accesssing GitHub's API: %v", err)
+		return nil, false, fmt.Errorf("error accesssing GitHub's API: %v", err)
+	}
+
+	// Check to confirm that the request was successful (if not, we simply log a warning
+	// and move on)
+	if resp.StatusCode != 200 {
+		log.Printf("[WARNING] Request for user information with username '%v' was unsuccessful. Status:, %v", username, resp.Status)
+		return nil, false, nil
 	}
 
 	// Convert response to a slice of JSON bytes.
 	respData, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("error reading response from GitHub: %v", err)
+		return nil, false, fmt.Errorf("error reading response from GitHub: %v", err)
 	}
-	return respData, nil
+
+	return respData, true, nil
 }
 
 // deduplicate returns a slice of string usernames identical to the provided slice of
