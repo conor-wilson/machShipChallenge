@@ -6,48 +6,15 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"sort"
 
 	"github.com/gin-gonic/gin"
 )
 
-// main routes the functionality of the API and exposes it on port 8080. 
+// main routes the functionality of the API and exposes it on port 8080.
 func main() {
 	router := gin.Default()
 	router.GET("/retrieveUsers", retrieveUsers)
 	router.Run("localhost:8080")
-}
-
-// User encapsulates the basic information of a GitHub user.
-type User struct {
-	Name         string `json:"name"`
-	Login        string `json:"login"`
-	Company      string `json:"company"`
-	NumFollowers int    `json:"followers"`
-	NumRepos     int    `json:"public_repos"`
-
-	// The average number of followers the user has per public repository.
-	AvgRepoFollowers float32 `json:"avg_public_repo_followers"`
-}
-
-// Users encapsulates a slice of Users.
-type Users []*User
-
-// computeAvgRepoFollowers calculates the average followers per public repo of the
-// provided User and update's the User's field accordingly.
-func (user *User) computeAvgRepoFollowers() {
-	if user.NumRepos == 0 {
-		user.AvgRepoFollowers = 0
-		return
-	}
-	user.AvgRepoFollowers = float32(user.NumFollowers) / float32(user.NumRepos)
-}
-
-// alphabetise sorts the provided slice of Users alphabetically by name.
-func (users Users) alphabetise() {
-	sort.Slice(users, func(i, j int) bool {
-		return users[i].Name[0] < users[j].Name[0]
-	})
 }
 
 // retrieveUsers retrieves the basic user information of the specified GitHub users. This
@@ -110,27 +77,4 @@ func unmarshalUserFromGitHubResponse(resp *http.Response) (*User, bool, error) {
 		return nil, false, fmt.Errorf("error unmarshalling from JSON: %v\n", err)
 	}
 	return newUser, true, nil
-}
-
-// deduplicate returns a slice of string usernames identical to the provided slice of
-// string usernames, but with duplicates removed.
-func deduplicate(usernames []string) []string {
-	output := []string{}
-	for _, username := range usernames {
-		if !contains(output, username) {
-			output = append(output, username)
-		}
-	}
-	return output
-}
-
-// contains indicates whether or not the provided slice of string usernames contains the
-// query string username.
-func contains(usernames []string, query string) bool {
-	for _, existingString := range usernames {
-		if existingString == query {
-			return true
-		}
-	}
-	return false
 }
