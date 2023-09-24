@@ -28,22 +28,31 @@ func main() {
 // function encapsulates the functionality of this API's retrieveUsers endpoint.
 func retrieveUsers(c *gin.Context) {
 
-	// Obtain the raw user data from GitHub
-	userData, err := getUserDataFromGitHub("conor-wilson")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
+	// Get the array of usernames from the query
+	usernames := c.QueryArray("users")
+	users := []user{}
 
-	// Marshal the data into our specified user struct type
-	myUser := user{}
-	if err = json.Unmarshal([]byte(userData), &myUser); err != nil {
-		fmt.Printf("Error unmarshalling from JSON: %v\n", err)
-		return
+	// For each username...
+	for _, username := range usernames {
+
+		// ...obtain the raw user data from GitHub...
+		userData, err := getUserDataFromGitHub(username)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		// ...and marshal the data into our specified user struct type.
+		newUser := user{}
+		if err = json.Unmarshal([]byte(userData), &newUser); err != nil {
+			fmt.Printf("Error unmarshalling from JSON: %v\n", err)
+			return
+		}
+		users = append(users, newUser)
 	}
 
 	// Push the information to the API output.
-	c.IndentedJSON(http.StatusOK, myUser)
+	c.IndentedJSON(http.StatusOK, users)
 }
 
 // getUserDataFromGitHub obtains the raw user data of the provided user from GitHub and
