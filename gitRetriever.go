@@ -20,6 +20,8 @@ type User struct {
 	AvgRepoFollowers float32 `json:"avg_public_repo_followers"`
 }
 
+type Users []*User
+
 func main() {
 	router := gin.Default()
 	router.GET("/retrieveUsers", retrieveUsers)
@@ -35,7 +37,7 @@ func retrieveUsers(c *gin.Context) {
 	usernames = deduplicate(usernames)
 
 	// For each username...
-	users := []*User{}
+	users := Users{}
 	for _, username := range usernames {
 
 		// ...obtain the raw user data from GitHub's API...
@@ -112,7 +114,7 @@ func computeRepoAvgFollowers(user *User) {
 }
 
 // alphabetiseUsers sorts the provided slice of Users alphabetically by name.
-func alphabetiseUsers(users []*User) {
+func alphabetiseUsers(users Users) {
 	sort.Slice(users, func(i, j int) bool {
 		return users[i].Name[0] < users[j].Name[0]
 	})

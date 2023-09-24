@@ -208,12 +208,12 @@ func TestAlphabetiseUsers(t *testing.T) {
 
 	tests := []struct {
 		name           string
-		users          []*User
-		expectedOutput []*User
+		users          Users
+		expectedOutput Users
 	}{
 		{
 			name: "happy-path",
-			users: []*User{
+			users: Users{
 				{
 					Name: "Conor Wilson",
 				},
@@ -224,7 +224,7 @@ func TestAlphabetiseUsers(t *testing.T) {
 					Name: "Buggs Bunny",
 				},
 			},
-			expectedOutput: []*User{
+			expectedOutput: Users{
 				{
 					Name: "Buggs Bunny",
 				},
