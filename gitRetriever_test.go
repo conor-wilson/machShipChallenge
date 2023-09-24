@@ -146,6 +146,64 @@ func TestDeduplicate(t *testing.T) {
 	}
 }
 
+func TestComputeAvgRepoFollowers(t *testing.T) {
+
+	tests := []struct {
+		name           string
+		user           *User
+		expectedOutput *User
+	}{
+		{
+			name: "happy-path",
+			user: &User{
+				NumFollowers: 23,
+				NumRepos:     4,
+			},
+			expectedOutput: &User{
+				NumFollowers:     23,
+				NumRepos:         4,
+				AvgRepoFollowers: float32(23) / float32(4),
+			},
+		},
+		{
+			name: "happy-path-0-followers",
+			user: &User{
+				NumFollowers: 0,
+				NumRepos:     4,
+			},
+			expectedOutput: &User{
+				NumFollowers:     0,
+				NumRepos:         4,
+				AvgRepoFollowers: 0,
+			},
+		},
+		{
+			name: "happy-path-0-repos",
+			user: &User{
+				NumFollowers: 23,
+				NumRepos:     0,
+			},
+			expectedOutput: &User{
+				NumFollowers:     23,
+				NumRepos:         0,
+				AvgRepoFollowers: 0,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			// Call function under test
+			computeRepoAvgFollowers(tt.user)
+
+			// Confirm the output is as expected
+			errMsg := fmt.Sprintf("computeAverageFollowers() did not compute the average repository followers correctly:\nWant: %v\nGot:  %v", tt.expectedOutput, tt.user)
+			require.Equal(t, tt.user, tt.expectedOutput, errMsg)
+		})
+	}
+}
+
 func TestAlphabetiseUsers(t *testing.T) {
 
 	tests := []struct {

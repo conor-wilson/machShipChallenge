@@ -12,12 +12,12 @@ import (
 )
 
 type User struct {
-	Name             string `json:"name"`
-	Login            string `jason:"login"`
-	Company          string `json:"company"`
-	NumFollowers     int    `json:"followers"`
-	NumRepos         int    `json:"public_repos"`
-	AvgRepoFollowers float32
+	Name             string  `json:"name"`
+	Login            string  `json:"login"`
+	Company          string  `json:"company"`
+	NumFollowers     int     `json:"followers"`
+	NumRepos         int     `json:"public_repos"`
+	AvgRepoFollowers float32 `json:"avg_public_repo_followers"`
 }
 
 func main() {
@@ -48,12 +48,13 @@ func retrieveUsers(c *gin.Context) {
 		// ...unmarshal the resulting response into a User struct...
 		newUser, success, err := unmarshalUserFromGitHubResponse(resp)
 		if err != nil {
-			log.Println(err)
+			log.Printf("error unmarshalling User from GitHub response: %v\n", err)
 			return
 		} else if !success {
 			log.Printf("[WARNING] Request for user information with username '%v' was unsuccessful. Status:, %v\n", username, resp.Status)
 			continue
 		}
+		computeRepoAvgFollowers(newUser)
 
 		// ...and append the new User to the User slice.
 		users = append(users, newUser)
@@ -98,6 +99,16 @@ func deduplicate(usernames []string) []string {
 		}
 	}
 	return output
+}
+
+// computeRepoAvgFollowers calculates the average followers per public repo of the
+// provided User and update's the User's field accordingly.
+func computeRepoAvgFollowers(user *User) {
+	if user.NumRepos == 0 {
+		user.AvgRepoFollowers = 0
+		return
+	}
+	user.AvgRepoFollowers = float32(user.NumFollowers) / float32(user.NumRepos)
 }
 
 // alphabetiseUsers sorts the provided slice of Users alphabetically by name.
