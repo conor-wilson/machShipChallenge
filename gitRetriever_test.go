@@ -166,7 +166,7 @@ func TestComputeAvgRepoFollowers(t *testing.T) {
 			},
 		},
 		{
-			name: "happy-path-0-followers",
+			name: "happy-path-zero-followers",
 			user: &User{
 				NumFollowers: 0,
 				NumRepos:     4,
@@ -178,7 +178,7 @@ func TestComputeAvgRepoFollowers(t *testing.T) {
 			},
 		},
 		{
-			name: "happy-path-0-repos",
+			name: "happy-path-zero-repos",
 			user: &User{
 				NumFollowers: 23,
 				NumRepos:     0,
@@ -195,16 +195,16 @@ func TestComputeAvgRepoFollowers(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			// Call function under test
-			computeRepoAvgFollowers(tt.user)
+			tt.user.computeAvgRepoFollowers()
 
 			// Confirm the output is as expected
-			errMsg := fmt.Sprintf("computeAverageFollowers() did not compute the average repository followers correctly:\nWant: %v\nGot:  %v", tt.expectedOutput, tt.user)
+			errMsg := fmt.Sprintf("User.computeAvgRepoFollowers() did not compute the average repository followers correctly:\nWant: %v\nGot:  %v", tt.expectedOutput, tt.user)
 			require.Equal(t, tt.user, tt.expectedOutput, errMsg)
 		})
 	}
 }
 
-func TestAlphabetiseUsers(t *testing.T) {
+func TestUsersAlphabetise(t *testing.T) {
 
 	tests := []struct {
 		name           string
@@ -242,14 +242,14 @@ func TestAlphabetiseUsers(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			// Call function under test
-			alphabetiseUsers(tt.users)
+			tt.users.alphabetise()
 
 			// Confirm the output is as expected
 			if len(tt.users) != len(tt.expectedOutput) {
-				t.Errorf("alphabetiseUsers() returned a slice of unexpected length:\nWant: %v\nGot:  %v", tt.expectedOutput, tt.users)
+				t.Errorf("Users.alphabetise() returned a slice of unexpected length:\nWant: %v\nGot:  %v", tt.expectedOutput, tt.users)
 			}
 			for i := 0; i < len(tt.expectedOutput); i++ {
-				errMsg := fmt.Sprintf("alphabetiseUsers() returned an unexpected output:\nWant: %v\nGot:  %v", tt.expectedOutput, tt.users)
+				errMsg := fmt.Sprintf("Users.alphabetise() returned an unexpected output:\nWant: %v\nGot:  %v", tt.expectedOutput, tt.users)
 				require.Equal(t, tt.users[i], tt.expectedOutput[i], errMsg)
 			}
 		})

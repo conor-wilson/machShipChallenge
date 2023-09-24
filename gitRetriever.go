@@ -56,14 +56,14 @@ func retrieveUsers(c *gin.Context) {
 			log.Printf("[WARNING] Request for user information with username '%v' was unsuccessful. Status:, %v\n", username, resp.Status)
 			continue
 		}
-		computeRepoAvgFollowers(newUser)
+		newUser.computeAvgRepoFollowers()
 
 		// ...and append the new User to the User slice.
 		users = append(users, newUser)
 	}
 
 	// Tidy up the result and push the information to the API output.
-	alphabetiseUsers(users)
+	users.alphabetise()
 	c.IndentedJSON(http.StatusOK, users)
 }
 
@@ -103,9 +103,9 @@ func deduplicate(usernames []string) []string {
 	return output
 }
 
-// computeRepoAvgFollowers calculates the average followers per public repo of the
+// computeAvgRepoFollowers calculates the average followers per public repo of the
 // provided User and update's the User's field accordingly.
-func computeRepoAvgFollowers(user *User) {
+func (user *User) computeAvgRepoFollowers() {
 	if user.NumRepos == 0 {
 		user.AvgRepoFollowers = 0
 		return
@@ -113,8 +113,8 @@ func computeRepoAvgFollowers(user *User) {
 	user.AvgRepoFollowers = float32(user.NumFollowers) / float32(user.NumRepos)
 }
 
-// alphabetiseUsers sorts the provided slice of Users alphabetically by name.
-func alphabetiseUsers(users Users) {
+// alphabetise sorts the provided slice of Users alphabetically by name.
+func (users Users) alphabetise() {
 	sort.Slice(users, func(i, j int) bool {
 		return users[i].Name[0] < users[j].Name[0]
 	})
