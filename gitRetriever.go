@@ -45,8 +45,8 @@ func retrieveUsers(c *gin.Context) {
 			return
 		}
 
-		// ...marshal the resulting response into a User struct...
-		newUser, success, err := marshalUserFromGitHubResponse(resp)
+		// ...unmarshal the resulting response into a User struct...
+		newUser, success, err := unmarshalUserFromGitHubResponse(resp)
 		if err != nil {
 			log.Println(err)
 			return
@@ -64,9 +64,9 @@ func retrieveUsers(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, users)
 }
 
-// marshalUserFromGitHubResponse marshals a User struct from the body of the
+// unmarshalUserFromGitHubResponse marshals a User struct from the body of the
 // http.Response struct returned by GitHub's API.
-func marshalUserFromGitHubResponse(resp *http.Response) (*User, bool, error) {
+func unmarshalUserFromGitHubResponse(resp *http.Response) (*User, bool, error) {
 
 	// Check to confirm that the request was successful (if not, we simply log a warning
 	// and move on)
