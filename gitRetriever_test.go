@@ -51,11 +51,64 @@ func TestDeduplicate(t *testing.T) {
 
 			// Confirm the output is as expected
 			if len(output) != len(tt.expectedOutput) {
-				t.Errorf("DeduplicateUsernames() returned a slice of unexpected length:\nWant: %v\nGot:  %v", tt.expectedOutput, output)
+				t.Errorf("deduplicate() returned a slice of unexpected length:\nWant: %v\nGot:  %v", tt.expectedOutput, output)
 			}
 			for i := 0; i < len(tt.expectedOutput); i++ {
 				if output[i] != tt.expectedOutput[i] {
-					t.Errorf("DeduplicateUsernames() returned an unexpected output:\nWant: %v\nGot:  %v", tt.expectedOutput, output)
+					t.Errorf("deduplicate() returned an unexpected output:\nWant: %v\nGot:  %v", tt.expectedOutput, output)
+				}
+			}
+		})
+	}
+}
+
+func TestAlphabetiseUsers(t *testing.T) {
+
+	tests := []struct {
+		name           string
+		users          []User
+		expectedOutput []User
+	}{
+		{
+			name: "happy-path",
+			users: []User{
+				{
+					Name: "Conor Wilson",
+				},
+				{
+					Name: "Daffy Duck",
+				},
+				{
+					Name: "Buggs Bunny",
+				},
+			},
+			expectedOutput: []User{
+				{
+					Name: "Buggs Bunny",
+				},
+				{
+					Name: "Conor Wilson",
+				},
+				{
+					Name: "Daffy Duck",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			// Call function under test
+			alphabetiseUsers(tt.users)
+
+			// Confirm the output is as expected
+			if len(tt.users) != len(tt.expectedOutput) {
+				t.Errorf("alphabetiseUsers() returned a slice of unexpected length:\nWant: %v\nGot:  %v", tt.expectedOutput, tt.users)
+			}
+			for i := 0; i < len(tt.expectedOutput); i++ {
+				if tt.users[i] != tt.expectedOutput[i] {
+					t.Errorf("alphabetiseUsers() returned an unexpected output:\nWant: %v\nGot:  %v", tt.expectedOutput, tt.users)
 				}
 			}
 		})

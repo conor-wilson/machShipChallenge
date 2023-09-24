@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
 
 	"github.com/gin-gonic/gin"
 )
 
-type user struct {
+type User struct {
 	Name             string `json:"name"`
 	Login            string `jason:"login"`
 	Company          string `json:"company"`
@@ -33,7 +34,7 @@ func retrieveUsers(c *gin.Context) {
 	usernames = deduplicate(usernames)
 
 	// For each username...
-	users := []user{}
+	users := []User{}
 	for _, username := range usernames {
 
 		// ...obtain the raw user data from GitHub...
@@ -43,8 +44,8 @@ func retrieveUsers(c *gin.Context) {
 			return
 		}
 
-		// ...and marshal the data into our specified user struct type.
-		newUser := user{}
+		// ...and marshal the data into our User struct type.
+		newUser := User{}
 		if err = json.Unmarshal([]byte(userData), &newUser); err != nil {
 			fmt.Printf("Error unmarshalling from JSON: %v\n", err)
 			return
@@ -52,7 +53,8 @@ func retrieveUsers(c *gin.Context) {
 		users = append(users, newUser)
 	}
 
-	// Push the information to the API output.
+	// Tidy up the result and push the information to the API output.
+	alphabetiseUsers(users)
 	c.IndentedJSON(http.StatusOK, users)
 }
 
@@ -84,6 +86,13 @@ func deduplicate(usernames []string) []string {
 		}
 	}
 	return output
+}
+
+// alphabetiseUsers sorts the provided slice of Users alphabetically by name.
+func alphabetiseUsers(users []User) {
+	sort.Slice(users, func(i, j int) bool {
+		return users[i].Name[0] < users[j].Name[0]
+	})
 }
 
 // contains indicates whether or not the provided slice of string usernames contains the
